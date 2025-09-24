@@ -3,6 +3,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from sqlalchemy import func
+from models import QuizAttempt
+from datetime import datetime
 
 router = APIRouter()
 
@@ -31,4 +33,38 @@ def get_user_performance(user_id: int, db: Session = Depends(get_db)):
         "current_streak": streak,
         "xp": xp,
         "badges": badges
+    }
+# Get overall stats for a user
+@router.get("/analytics/user/{user_id}")
+def user_stats(user_id: int, db: Session = Depends(get_db)):
+    attempts = db.query(QuizAttempt).filter(QuizAttempt.user_id == user_id).all()
+    total_attempts = len(attempts)
+    avg_score = sum([a.score for a in attempts]) / total_attempts if total_attempts > 0 else 0
+
+    return {
+        "user_id": user_id,
+        "total_attempts": total_attempts,
+        "average_score": avg_score,
+        "last_attempt": attempts[-1].timestamp if total_attempts > 0 else None
+    }
+
+# Get quiz-wise stats
+@router.get("/analytics/quiz/{quiz_id}")
+def quiz_stats(quiz_id: int, db: Session = Depends(get_db)):
+    attempts = db.query(QuizAttempt).filter(QuizAttempt.quiz_id == quiz_id).all()
+    total_attempts = len(attempts)
+    avg_score = sum([a.score for a in attempts]) / total_attempts if total_attempts > 0 else 0
+
+    return {
+        "quiz_id": quiz_id,
+        "total_attempts": total_attempts,
+        "average_score": avg_score,
+        "attempts": [
+            {
+                "user_id": a.user_id,
+                "score": a.score,
+                "timestamp": a.timestamp
+            }
+            for a in attempts
+        ]
     }
