@@ -27,3 +27,20 @@ class QuestionBase(BaseModel):
 class QuizSubmit(BaseModel):
     user_id: int
     answers: List[dict]  # [{question_id: int, chosen_answer: str, response_time: float}]
+
+class Answer(BaseModel):
+    question_id: int
+    chosen_answer: str
+
+class SubmitQuizRequest(BaseModel):
+    user_id: int
+    subject: str
+    current_difficulty: str
+    answers: List[Answer]
+
+class SubmitQuizResponse(BaseModel):
+    score: int
+    xp_gained: int
+    new_streak: int
+    badges_unlocked: List[str]
+    next_difficulty: str
