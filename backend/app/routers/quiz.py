@@ -15,6 +15,16 @@ from datetime import datetime
 from app.database import get_db
 from app import crud, models, schemas
 from app.utils.gamification import calculate_quiz_xp, update_gamification_for_user
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from gamification import update_progress
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from database import get_db
+from models import UserProgress
+from gamification import calculate_xp, update_streak, unlock_badges
+
 router = APIRouter()
 
 def calculate_xp(score: int, total_questions: int, fast_answers: int = 0):
@@ -253,3 +263,41 @@ def submit_quiz(payload: schemas.SubmitQuizRequest, db: Session = Depends(get_db
         badges_unlocked=gamification_result["new_badges"],
         next_difficulty=next_difficulty
     )
+@router.post("/quiz/submit")
+def submit_quiz(user_id: int, score: int, db: Session = Depends(get_db)):
+    # Save quiz results in your quiz table first (already done in offline support)
+    
+    # Update gamification
+    progress = update_progress(db, user_id=user_id, xp_earned=score)
+    
+    return {
+        "message": "Quiz submitted successfully",
+        "progress": progress
+    }
+@router.post("/submit_quiz/")
+def submit_quiz(user_id: int, quiz_score: int, db: Session = Depends(get_db)):
+    # Get or create user progress
+    user_progress = db.query(UserProgress).filter(UserProgress.user_id == user_id).first()
+    if not user_progress:
+        user_progress = UserProgress(user_id=user_id, xp=0, streak=0, badges="")
+        db.add(user_progress)
+        db.commit()
+        db.refresh(user_progress)
+    
+    # 1️⃣ Calculate XP
+    gained_xp = calculate_xp(quiz_score)
+    user_progress.xp += gained_xp
+    
+    # 2️⃣ Update streak
+    streak = update_streak(user_progress, db)
+    
+    # 3️⃣ Unlock badges
+    unlocked_badges = unlock_badges(user_progress, db)
+    
+    # 4️⃣ Return all gamification info
+    return {
+        "xp_earned": gained_xp,
+        "total_xp": user_progress.xp,
+        "current_streak": streak,
+        "badges_unlocked": unlocked_badges
+    }

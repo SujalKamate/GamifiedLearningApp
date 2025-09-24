@@ -85,3 +85,18 @@ class Answer(BaseModel):
     question_id: int
     chosen_answer: str
     response_time: Optional[float] = None   # seconds — frontend should send if available
+from pydantic import BaseModel
+from typing import List, Dict, Optional
+from datetime import date
+
+class BadgeSchema(BaseModel):
+    badge_id: int
+    name: str
+    description: Optional[str]
+
+class UserProgressSchema(BaseModel):
+    user_id: int
+    total_xp: int
+    current_streak: int
+    badges: List[BadgeSchema]
+    last_quiz_date: Optional[date]

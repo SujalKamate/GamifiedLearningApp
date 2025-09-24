@@ -7,7 +7,14 @@ from sqlalchemy import Column, Integer, String, Float, JSON, ForeignKey, DateTim
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.database import Base
-
+from sqlalchemy import Column, Integer, String, JSON, Date
+from database import Base
+from sqlalchemy import Column, Integer, String, JSON, Date
+from database import Base
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from database import Base
+import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -79,3 +86,47 @@ class QuizLog(Base):
     difficulty = Column(String)
     timestamp = Column(DateTime, default=datetime.utcnow)
     synced = Column(Boolean, default=True)  # false if offline and not yet synced
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+    user_id = Column(Integer, primary_key=True, index=True)
+    total_xp = Column(Integer, default=0)
+    current_streak = Column(Integer, default=0)
+    last_quiz_date = Column(Date)
+    badges = Column(JSON, default=[])
+
+class Badge(Base):
+    __tablename__ = "badges"
+    badge_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    criteria = Column(JSON, nullable=False)
+    
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+    user_id = Column(Integer, primary_key=True, index=True)
+    total_xp = Column(Integer, default=0)
+    current_streak = Column(Integer, default=0)
+    last_quiz_date = Column(Date)
+    badges = Column(JSON, default=[])
+
+class Badge(Base):
+    __tablename__ = "badges"
+    badge_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    criteria = Column(JSON, nullable=False)
+class UserProgress(Base):
+    __tablename__ = "user_progress"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, index=True)
+    xp = Column(Integer, default=0)
+    streak = Column(Integer, default=0)
+    last_quiz_date = Column(DateTime, default=datetime.datetime.utcnow)
+    badges = Column(String, default="")  # comma separated badge ids
+
+class Badge(Base):
+    __tablename__ = "badges"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String)
+    criteria = Column(String)  # e.g., "xp_100", "streak_7"
+    description = Column(String)

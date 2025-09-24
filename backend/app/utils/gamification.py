@@ -1,7 +1,9 @@
 # app/utils/gamification.py
 from datetime import datetime, date, timedelta
 from typing import List, Dict
-
+from datetime import datetime, timedelta
+from models import UserProgress, Badge
+from sqlalchemy.orm import Session
 # Define badge thresholds
 BADGE_RULES = [
     (50, "Beginner"),
@@ -76,3 +78,94 @@ def update_gamification_for_user(user, xp_gained: int, db_session) -> Dict:
         "current_streak": user.streak,
         "streak_warning": streak_warning
     }
+from datetime import date, timedelta
+from sqlalchemy.orm import Session
+from models import UserProgress, Badge
+from schemas import BadgeSchema
+
+def update_progress(db: Session, user_id: int, xp_earned: int):
+    user = db.query(UserProgress).filter(UserProgress.user_id == user_id).first()
+    if not user:
+        user = UserProgress(user_id=user_id, total_xp=0, current_streak=0, badges=[])
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    # Update XP
+    user.total_xp += xp_earned
+
+    # Update streak
+    today = date.today()
+    if user.last_quiz_date == today - timedelta(days=1):
+        user.current_streak += 1
+    elif user.last_quiz_date == today:
+        pass  # Same day, streak unchanged
+    else:
+        user.current_streak = 1
+
+    user.last_quiz_date = today
+
+    # Check badges
+    badges = db.query(Badge).all()
+    unlocked = []
+    for badge in badges:
+        criteria = badge.criteria
+        if "xp" in criteria and user.total_xp >= criteria["xp"] and badge.name not in [b["name"] for b in user.badges]:
+            user.badges.append({"badge_id": badge.badge_id, "name": badge.name, "description": badge.description})
+            unlocked.append(badge.name)
+        if "streak" in criteria and user.current_streak >= criteria["streak"] and badge.name not in [b["name"] for b in user.badges]:
+            user.badges.append({"badge_id": badge.badge_id, "name": badge.name, "description": badge.description})
+            unlocked.append(badge.name)
+
+    db.commit()
+    db.refresh(user)
+
+    return {
+        "total_xp": user.total_xp,
+        "current_streak": user.current_streak,
+        "badges": user.badges,
+        "unlocked_badges": unlocked
+    }
+def calculate_xp(quiz_score: int) -> int:
+    # Simple XP logic: each correct answer = 10 XP
+    return quiz_score * 10
+
+def update_streak(user_progress: UserProgress, db: Session):
+    today = datetime.utcnow().date()
+    last_date = user_progress.last_quiz_date.date()
+    
+    if today == last_date + timedelta(days=1):
+        user_progress.streak += 1
+    elif today != last_date:
+        user_progress.streak = 1  # streak broken, reset
+    
+    user_progress.last_quiz_date = datetime.utcnow()
+    db.commit()
+    db.refresh(user_progress)
+    return user_progress.streak
+
+def unlock_badges(user_progress: UserProgress, db: Session):
+    unlocked = []
+    all_badges = db.query(Badge).all()
+    for badge in all_badges:
+        if badge.id in user_progress.badges.split(","):
+            continue  # already unlocked
+
+        # Example criteria parsing
+        if badge.criteria.startswith("xp_"):
+            required_xp = int(badge.criteria.split("_")[1])
+            if user_progress.xp >= required_xp:
+                unlocked.append(badge.name)
+        elif badge.criteria.startswith("streak_"):
+            required_streak = int(badge.criteria.split("_")[1])
+            if user_progress.streak >= required_streak:
+                unlocked.append(badge.name)
+    
+    # Update user badges
+    if unlocked:
+        current = user_progress.badges.split(",") if user_progress.badges else []
+        user_progress.badges = ",".join(current + [str(badge.id) for badge in all_badges if badge.name in unlocked])
+        db.commit()
+        db.refresh(user_progress)
+    
+    return unlocked
