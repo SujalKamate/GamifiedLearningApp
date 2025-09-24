@@ -1,29 +1,42 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.database import get_db
-from app import models
+from fastapi import APIRouter, HTTPException
+from app.database import get_db_connection
+from app.models import DashboardResponse, SubjectStats
 
-router = APIRouter()
+router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
-@router.get("/user-dashboard/{user_id}")
-def user_dashboard(user_id: int, db: Session = Depends(get_db)):
-    user = db.query(models.User).filter(models.User.id == user_id).first()
+@router.get("/{user_id}", response_model=DashboardResponse)
+def get_dashboard(user_id: int):
+    conn = get_db_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT xp, streak, badges FROM users WHERE id = ?", (user_id,))
+    user = cur.fetchone()
     if not user:
+        conn.close()
         raise HTTPException(status_code=404, detail="User not found")
-    
-    # Fetch quiz stats
-    total_quizzes = db.query(models.QuizLog).filter(models.QuizLog.user_id == user_id).count()
-    correct_answers = db.query(models.QuizLog).filter(models.QuizLog.user_id == user_id, models.QuizLog.correct == 1).count()
-    accuracy = (correct_answers / total_quizzes) if total_quizzes > 0 else 0
-    
-    dashboard_data = {
-        "user_id": user.id,
-        "name": user.name,
-        "xp": user.xp,
-        "streak": user.streak,
-        "badges": user.badges,
-        "total_quizzes": total_quizzes,
-        "accuracy": round(accuracy * 100, 2)
-    }
-    
-    return dashboard_data
+
+    badges = user["badges"].split(",") if user["badges"] else []
+
+    cur.execute("""
+        SELECT subject, COUNT(*) as total_questions, SUM(correct) as correct_answers
+        FROM quiz_logs
+        WHERE user_id = ?
+        GROUP BY subject
+    """, (user_id,))
+    subject_stats = []
+    for row in cur.fetchall():
+        accuracy = row["correct_answers"] / row["total_questions"] if row["total_questions"] else 0
+        subject_stats.append(SubjectStats(
+            subject=row["subject"],
+            total_questions=row["total_questions"],
+            correct_answers=row["correct_answers"],
+            accuracy=round(accuracy * 100, 2)
+        ))
+
+    conn.close()
+    return DashboardResponse(
+        xp=user["xp"],
+        streak=user["streak"],
+        badges=badges,
+        subject_stats=subject_stats
+    )
