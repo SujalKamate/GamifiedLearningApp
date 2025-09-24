@@ -1,9 +1,8 @@
 # app/utils/gamification.py
 from datetime import datetime, date, timedelta
 from typing import List, Dict
-from datetime import datetime, timedelta
-from models import UserProgress, Badge
 from sqlalchemy.orm import Session
+from app.models import UserProgress, Badge
 # Define badge thresholds
 BADGE_RULES = [
     (50, "Beginner"),
@@ -78,10 +77,8 @@ def update_gamification_for_user(user, xp_gained: int, db_session) -> Dict:
         "current_streak": user.streak,
         "streak_warning": streak_warning
     }
-from datetime import date, timedelta
 from sqlalchemy.orm import Session
-from models import UserProgress, Badge
-from schemas import BadgeSchema
+from app.models import UserProgress, Badge
 
 def update_progress(db: Session, user_id: int, xp_earned: int):
     user = db.query(UserProgress).filter(UserProgress.user_id == user_id).first()
@@ -132,7 +129,9 @@ def calculate_xp(quiz_score: int) -> int:
 
 def update_streak(user_progress: UserProgress, db: Session):
     today = datetime.utcnow().date()
-    last_date = user_progress.last_quiz_date.date()
+    last_date = user_progress.last_quiz_date
+    if isinstance(last_date, datetime):
+        last_date = last_date.date()
     
     if today == last_date + timedelta(days=1):
         user_progress.streak += 1

@@ -14,7 +14,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", confirmPassword: "" });
+  const [formData, setFormData] = useState({});
 
   useEffect(() => {
     if (!isPending && session?.user) {
@@ -22,37 +22,7 @@ export default function RegisterPage() {
     }
   }, [session, isPending, router]);
 
-  const handleEmailRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const name = (document.getElementById("name") as HTMLInputElement).value;
-    const email = (document.getElementById("email") as HTMLInputElement).value;
-    const password = (document.getElementById("password") as HTMLInputElement).value;
-    const confirmPassword = (document.getElementById("confirm-password") as HTMLInputElement).value;
-    
-    if (password !== confirmPassword) {
-      toast.error("Passwords do not match.");
-      return;
-    }
-
-    setIsLoading(true);
-    const { error } = await authClient.signUp.email({
-      email,
-      name,
-      password
-    });
-
-    if (error?.code) {
-      const errorMap = {
-        USER_ALREADY_EXISTS: "Email already registered"
-      };
-      toast.error(errorMap[error.code] || "Registration failed");
-      setIsLoading(false);
-      return;
-    }
-
-    toast.success("Account created! Please check your email to verify.");
-    router.push("/login?registered=true");
-  };
+  const handleEmailRegister = async (e: React.FormEvent) => {};
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
@@ -78,38 +48,22 @@ export default function RegisterPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Join EVOLV</CardTitle>
           <CardDescription>
-            Start your gamified learning adventure in coding, vocab, and finance with Google.
+            Get started instantly with your Google account.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4">
-            <Label htmlFor="name">Full Name</Label>
-            <Input id="name" type="text" placeholder="Enter your full name" required />
-          </div>
-          <div className="grid gap-4">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="Enter your email" required />
-          </div>
-          <div className="grid gap-4">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="Enter your password" required autocomplete="off" />
-          </div>
-          <div className="grid gap-4">
-            <Label htmlFor="confirm-password">Confirm Password</Label>
-            <Input id="confirm-password" type="password" placeholder="Confirm your password" required autocomplete="off" />
-          </div>
-          <Button type="submit" className="w-full" onClick={handleEmailRegister} disabled={isLoading}>
+          <Button className="w-full" onClick={handleGoogleSignUp} disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Creating account...
+                Connecting to Google...
               </>
             ) : (
-              "Sign Up"
+              "Continue with Google"
             )}
           </Button>
           <div className="text-center text-sm text-muted-foreground">
-            Already have an account? Sign in instead.
+            We’ll create your account automatically.
           </div>
         </CardContent>
       </Card>

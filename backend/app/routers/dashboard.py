@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from app.database import get_db_connection
-from app.models import DashboardResponse, SubjectStats
+from app.schemas import DashboardResponse, SubjectStats
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 

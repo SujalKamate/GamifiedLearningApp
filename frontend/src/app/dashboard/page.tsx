@@ -23,29 +23,17 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isPending && !session?.user) {
-      router.push('/login?redirect=/dashboard');
-    }
-  }, [session, isPending, router]);
+  // Mock mode: do not redirect unauthenticated users
 
   useEffect(() => {
-    if (session?.user) {
-      fetchProgress();
-    }
-  }, [session]);
+    fetchProgress();
+  }, []);
 
   const fetchProgress = async () => {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('bearer_token');
-      const response = await fetch('/api/progress', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await fetch('/api/progress');
 
       if (!response.ok) {
         throw new Error('Failed to fetch progress');
@@ -96,7 +84,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {session?.user.name}!</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Welcome back, {session?.user?.name || 'Learner'}!</h1>
           <p className="text-muted-foreground">Track your learning journey across subjects.</p>
         </div>
 
@@ -140,9 +128,17 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Button variant="outline" className="w-full">View Analytics</Button>
-              <Button variant="outline" className="w-full" asChild>
-                <a href="/challenges">Start New Challenge</a>
-              </Button>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                <Button variant="outline" asChild>
+                  <a href="/challenges/coding">Start Coding</a>
+                </Button>
+                <Button variant="outline" asChild>
+                  <a href="/challenges/vocab">Start Vocab</a>
+                </Button>
+                <Button variant="outline" asChild>
+                  <a href="/challenges/finance">Start Finance</a>
+                </Button>
+              </div>
               <Button variant="outline" className="w-full">View Profile</Button>
             </CardContent>
           </Card>

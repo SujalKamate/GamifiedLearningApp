@@ -14,7 +14,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { data: session, isPending } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [formData, setFormData] = useState({ email: "", password: "", rememberMe: false });
+  const [formData, setFormData] = useState({});
 
   useEffect(() => {
     if (!isPending && session?.user) {
@@ -22,29 +22,7 @@ export default function LoginPage() {
     }
   }, [session, isPending, router]);
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const email = (document.getElementById("email") as HTMLInputElement).value;
-    const password = (document.getElementById("password") as HTMLInputElement).value;
-    const rememberMe = (document.getElementById("remember") as HTMLInputElement).checked;
-    
-    setIsLoading(true);
-    const { data, error } = await authClient.signIn.email({
-      email,
-      password,
-      rememberMe,
-      callbackURL: "/dashboard"
-    });
-
-    if (error?.code) {
-      toast.error("Invalid email or password. Please make sure you have already registered an account and try again.");
-      setIsLoading(false);
-      return;
-    }
-
-    toast.success("Signed in successfully!");
-    router.push("/dashboard");
-  };
+  const handleEmailLogin = async (e: React.FormEvent) => {};
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -70,34 +48,22 @@ export default function LoginPage() {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl">Welcome to EVOLV</CardTitle>
           <CardDescription>
-            Sign in to start your gamified learning journey in coding, vocab, and finance.
+            Continue with Google to start your gamified learning journey.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid gap-4">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" placeholder="Enter your email" required />
-          </div>
-          <div className="grid gap-4">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" placeholder="Enter your password" required autocomplete="off" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="remember">Remember me</Label>
-            <Input id="remember" type="checkbox" />
-          </div>
-          <Button type="submit" className="w-full" onClick={handleEmailLogin} disabled={isLoading}>
+          <Button className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Signing in...
+                Connecting to Google...
               </>
             ) : (
-              "Sign In"
+              "Continue with Google"
             )}
           </Button>
           <div className="text-center text-sm text-muted-foreground">
-            No account? Sign up happens automatically with Google.
+            New users are created automatically.
           </div>
         </CardContent>
       </Card>

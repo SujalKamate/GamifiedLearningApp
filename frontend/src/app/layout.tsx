@@ -9,6 +9,9 @@ import { Toaster } from '@/components/ui/sonner';
 export const metadata: Metadata = {
   title: "EVOLV - Gamified Adaptive Learning",
   description: "AI-powered gamified learning for coding, vocabulary, and finance with adaptive difficulty, offline play, analytics, and anti-cheating tools.",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({

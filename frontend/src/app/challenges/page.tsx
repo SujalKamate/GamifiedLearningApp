@@ -1,37 +1,16 @@
 "use client";
 
-import { useSession } from '@/lib/auth-client';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import Link from "next/link";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const subjects = [
-  { id: 'coding', title: 'Coding Challenges', description: 'Master algorithms and data structures through gamified quests.', icon: '💻' },
-  { id: 'vocab', title: 'Vocabulary Battles', description: 'Build your word power with engaging vocabulary duels.', icon: '📚' },
-  { id: 'finance', title: 'Finance Simulations', description: 'Learn financial concepts through interactive market simulations.', icon: '💰' },
+  { id: 'coding', title: 'Coding Challenges', description: 'Master algorithms and data structures.', icon: '💻' },
+  { id: 'vocab', title: 'Vocabulary Battles', description: 'Build your word power with duels.', icon: '📚' },
+  { id: 'finance', title: 'Finance Simulations', description: 'Basics, budgeting, and investing.', icon: '💰' },
 ];
 
 export default function Challenges() {
-  const { data: session, isPending } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isPending && !session?.user) {
-      router.push('/login?redirect=/challenges');
-    }
-  }, [session, isPending, router]);
-
-  if (isPending) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background py-8">
       <div className="container mx-auto px-4 max-w-4xl">

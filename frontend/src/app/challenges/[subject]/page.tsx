@@ -26,17 +26,13 @@ export default function SubjectChallenge() {
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(5);
 
-  useEffect(() => {
-    if (!isPending && !session?.user) {
-      router.push('/login?redirect=/challenges');
-    }
-  }, [session, isPending, router]);
+  // Mock mode: do not redirect unauthenticated users
 
   useEffect(() => {
-    if (session?.user && subject) {
+    if (subject) {
       startQuiz();
     }
-  }, [session, subject]);
+  }, [subject]);
 
   useEffect(() => {
     if (countdown > 0) {
@@ -52,13 +48,9 @@ export default function SubjectChallenge() {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('bearer_token');
       const response = await fetch('/api/quizzes/start', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           subject,
           difficulty: 1, // Start with easy
@@ -73,6 +65,10 @@ export default function SubjectChallenge() {
 
       const data: QuizSession = await response.json();
       setQuizSession(data);
+      try {
+        // Persist session so the quiz page can load it
+        sessionStorage.setItem(`quiz_session_${data.sessionId}`, JSON.stringify(data));
+      } catch {}
       toast.success(`Quiz started! Difficulty adapted to your level.`);
     } catch (err: any) {
       console.error(err);

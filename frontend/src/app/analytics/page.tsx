@@ -33,26 +33,18 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isPending && !session?.user) {
-      router.push('/login?redirect=/analytics');
-    }
-  }, [session, isPending, router]);
+  // Mock mode: do not redirect unauthenticated users
 
   useEffect(() => {
-    if (session?.user) {
-      fetchAnalytics();
-    }
-  }, [session]);
+    fetchAnalytics();
+  }, []);
 
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
       setError(null);
-      const token = localStorage.getItem('bearer_token');
       const response = await fetch('/api/analytics?days=30', {
         headers: {
-          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
       });

@@ -100,3 +100,27 @@ class UserProgressSchema(BaseModel):
     current_streak: int
     badges: List[BadgeSchema]
     last_quiz_date: Optional[date]
+
+# Dashboard response models
+class SubjectStats(BaseModel):
+    subject: str
+    total_questions: int
+    correct_answers: int
+    accuracy: float
+
+class DashboardResponse(BaseModel):
+    xp: int
+    streak: int
+    badges: List[str]
+    subject_stats: List[SubjectStats]
+
+# Leaderboard response models
+class LeaderboardUser(BaseModel):
+    user_id: int
+    name: str
+    xp: int
+    streak: int
+    badges: List[str]
+
+class LeaderboardResponse(BaseModel):
+    top_users: List[LeaderboardUser]

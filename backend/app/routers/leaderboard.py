@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.database import get_db_connection
-from app.models import LeaderboardResponse, LeaderboardUser
+from app.schemas import LeaderboardResponse, LeaderboardUser
 
 router = APIRouter(prefix="/leaderboard", tags=["Leaderboard"])
 

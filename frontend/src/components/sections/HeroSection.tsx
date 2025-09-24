@@ -7,6 +7,7 @@ import Link from "next/link";
 
 export default function HeroSection() {
   const { data: session, isPending } = useSession();
+  // session may be null; code below should guard accordingly
   const router = useRouter();
 
   return (
@@ -24,37 +25,30 @@ export default function HeroSection() {
         
         {!session && !isPending && (
           <div className="mb-8 p-4 bg-primary/10 rounded-lg border border-primary/20">
-            <p className="text-primary font-medium mb-2">Ready to evolve? Sign up free!</p>
+            <p className="text-primary font-medium mb-2">Ready to evolve? Continue with Google to start.</p>
             <div className="flex gap-2 justify-center">
-              <Button asChild variant="outline">
-                <Link href="/login">Sign In</Link>
-              </Button>
               <Button asChild>
-                <Link href="/register">Get Started</Link>
+                <Link href="/login">Continue with Google</Link>
               </Button>
             </div>
           </div>
         )}
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md mx-auto">
-          <input
-            type="text"
-            placeholder="Start with Coding Challenges..."
-            className="flex-1 px-4 py-3 rounded-full border border-input bg-background focus:ring-2 focus:ring-primary focus:outline-none"
-          />
-          <Button size="lg" className="px-8 rounded-full" onClick={() => router.push(session ? "/dashboard" : "/register")}>
-            {session ? "Launch Adventure" : "Start Learning"}
-          </Button>
-        </div>
-        <div className="flex justify-center gap-4 mt-8 flex-wrap">
+        {session && !isPending && (
+          <div className="mb-8 flex justify-center">
+            <Button asChild>
+              <Link href="/dashboard">Go to Dashboard</Link>
+            </Button>
+          </div>
+        )}
+        <div className="flex justify-center gap-4 mt-4 flex-wrap">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/quiz/coding">Coding Quests</Link>
+            <Link href="/challenges/coding">Coding Quests</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/quiz/vocab">Vocab Battles</Link>
+            <Link href="/challenges/vocab">Vocab Battles</Link>
           </Button>
           <Button variant="ghost" size="sm" asChild>
-            <Link href="/quiz/finance">Finance Simulations</Link>
+            <Link href="/challenges/finance">Finance Simulations</Link>
           </Button>
         </div>
       </div>

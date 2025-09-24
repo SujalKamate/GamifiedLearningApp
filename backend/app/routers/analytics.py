@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
 from sqlalchemy import func
-from models import QuizAttempt
+from app.models import QuizAttempt
 from datetime import datetime
 
 router = APIRouter()

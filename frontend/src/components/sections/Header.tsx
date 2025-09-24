@@ -28,7 +28,10 @@ const Logo = () => (
 
 const Header = () => {
   const { theme, setTheme } = useTheme();
-  const { data: session, isPending: sessionPending, refetch } = useSession();
+  const sessionHook = useSession();
+  const session = sessionHook?.data ?? null;
+  const sessionPending = sessionHook?.isPending ?? false;
+  const refetch = sessionHook?.refetch ?? (async () => {});
   const router = useRouter();
 
   // Gamification state (fetch on mount when logged in)
@@ -38,34 +41,11 @@ const Header = () => {
 
   useEffect(() => {
     if (session?.user) {
-      setLoadingGamification(true);
-      // Fetch XP from leaderboard API
-      fetch('/api/gamification/leaderboard?limit=1&includeUser=true', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('bearer_token')}`,
-        },
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.currentUser) {
-            setXp(data.currentUser.xp);
-          }
-        })
-        .catch(() => setXp(0))
-        .finally(() => setLoadingGamification(false));
-      
-      // Fetch badges from achievements API
-      fetch('/api/achievements', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('bearer_token')}`,
-        },
-      })
-        .then(res => res.json())
-        .then(data => {
-          const earnedBadges = data.filter(a => a.earned).length;
-          setBadges(earnedBadges);
-        })
-        .catch(() => setBadges(0));
+      setXp(950);
+      setBadges(3);
+    } else {
+      setXp(0);
+      setBadges(0);
     }
   }, [session]);
 
@@ -93,28 +73,15 @@ const Header = () => {
           <Link href="/" className="text-sm font-medium transition-colors hover:text-primary">
             Home
           </Link>
-          <Link href="/quiz/coding" className="text-sm font-medium transition-colors hover:text-primary">
-            Coding
+          <Link href="/challenges" className="text-sm font-medium transition-colors hover:text-primary">
+            Challenges
           </Link>
-          <Link href="/quiz/vocab" className="text-sm font-medium transition-colors hover:text-primary">
-            Vocab
+          <Link href="/dashboard" className="text-sm font-medium transition-colors hover:text-primary">
+            Dashboard
           </Link>
-          <Link href="/quiz/finance" className="text-sm font-medium transition-colors hover:text-primary">
-            Finance
+          <Link href="/analytics" className="text-sm font-medium transition-colors hover:text-primary">
+            Analytics
           </Link>
-          <Link href="/leaderboard" className="text-sm font-medium transition-colors hover:text-primary">
-            Leaderboard
-          </Link>
-          {session && (
-            <>
-              <Link href="/dashboard" className="text-sm font-medium transition-colors hover:text-primary">
-                Dashboard
-              </Link>
-              <Link href="/profile" className="text-sm font-medium transition-colors hover:text-primary">
-                Profile
-              </Link>
-            </>
-          )}
         </nav>
         
         {/* Gamification Indicators - only show when logged in */}
@@ -134,7 +101,6 @@ const Header = () => {
             <div className="flex items-center gap-1 bg-muted px-2 py-1 rounded-md text-xs font-medium">
               <span>🏆 {badges}</span>
             </div>
-            {loadingGamification && <div className="text-xs text-muted-foreground">Loading...</div>}
           </div>
         )}
         
@@ -148,49 +114,12 @@ const Header = () => {
             <span className="sr-only">Toggle theme</span>
           </Button>
           {!session && (
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" asChild>
-                <Link href="/login">Sign In</Link>
-              </Button>
-              <Button asChild>
-                <Link href="/register">Get Started</Link>
-              </Button>
-            </div>
+            <Button asChild>
+              <Link href="/login">Continue with Google</Link>
+            </Button>
           )}
           {session && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar>
-                    <AvatarImage src={session.user.image || undefined} alt={session.user.name || "User"} />
-                    <AvatarFallback>{session.user.name?.charAt(0) || "U"}</AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session.user.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">{session.user.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/profile">Profile</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard">Dashboard</Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onSelect={handleSignOut}
-                  className="focus:bg-destructive focus:text-destructive-foreground"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button variant="outline" size="sm" onClick={handleSignOut}>Sign out</Button>
           )}
         </div>
       </div>

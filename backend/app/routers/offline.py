@@ -5,7 +5,7 @@ from app.database import get_db
 
 router = APIRouter()
 
-@router.post("/offline/sync/{user_id}")
+@router.post("/sync/{user_id}")
 def sync_offline_attempts(user_id: int, db: Session = Depends(get_db)):
     """
     Sync all unsynced offline quiz attempts for a user.
